@@ -25,7 +25,12 @@ docker exec -it vos /opt/virtuoso-opensource/bin/isql  exec="SPARQL SELECT COUNT
 ```
 
 
-## Download and uncompress RDF files
+## Load the various Databases
+
+
+### BONSAI/EXIOBASE production database
+
+#### Download and uncompress RDF files
 
 
 ```bash
@@ -57,9 +62,7 @@ mv *.sql import/
 
 ```
 
-
-
-## Import Data 
+#### Import Data 
 
 ```bash
 
@@ -69,8 +72,10 @@ docker exec -it vos /opt/virtuoso-opensource/bin/isql exec="LOAD /import/load-ex
 
 ```
 
-## Test successful import
+#### Test successful import
 
+
+**Run count query**
 
 ```bash
 
@@ -79,3 +84,94 @@ docker exec -it vos \
 exec="SPARQL SELECT ?g (COUNT(*) as ?nTriple) WHERE { GRAPH ?g { ?s ?p ?o } } GROUP BY ?g;"
 
 ```
+
+
+**Expected output**
+
+
+|----------------------------------------------------------|-----------|
+| g                                                        | nTriple   |
+|----------------------------------------------------------|-----------|
+| http://rdf.bonsai.uno/data/exiobase3_3_17/huse           | 223964323 |
+| http://rdf.bonsai.uno/data/exiobase3_3_17/hsup           | 166763    |
+| http://rdf.bonsai.uno/prov/ystafdb                       | 49872     |
+| http://rdf.bonsai.uno/activitytype/ystafdb               | 6584      |
+| http://rdf.bonsai.uno/location/ystafdb                   | 5072      |
+| http://rdf.bonsai.uno/time                               | 3985      |
+| http://rdf.bonsai.uno/flowobject/exiobase3_3_17          | 614       |
+| http://rdf.bonsai.uno/flowobject/us_epa_elem             | 231       |
+| http://rdf.bonsai.uno/activitytype/entsoe                | 74        |
+| http://rdf.bonsai.uno/unit                               | 47        |
+| http://rdf.bonsai.uno/prov/exiobase3_3_17                | 30        |
+| http://rdf.bonsai.uno/foaf/exiobase3_3_17                | 21        |
+| http://rdf.bonsai.uno/activitytype/lcia/climate_change   | 20        |
+| http://rdf.bonsai.uno/flowobject/lcia/climate_change     | 20        |
+| http://rdf.bonsai.uno/flowobject/core/electricity_grid   | 17        |
+| http://ontology.bonsai.uno/core                          | 132       |
+|----------------------------------------------------------|-----------|
+
+
+### Eurostat `migr_asyappctzm` QB4OLAP dataset
+
+#### Download and uncompress RDF files
+
+
+```bash
+
+wget -O eurostat_schema_QB4OLAP_v1.3.ttl https://zenodo.org/record/8211126/files/eurostat_schema_QB4OLAP_v1.3.ttl?download=1
+wget -O migr_asyappctzm_data.ttl.gz https://zenodo.org/record/8211126/files/migr_asyappctzm_data.ttl.gz?download=1
+wget -O migr_asyappctzm_instances.ttl.gz https://zenodo.org/record/8211126/files/migr_asyappctzm_instances.ttl?download=1
+
+wget -O load-eurostat.sql https://zenodo.org/record/8211126/files/load-eurostat.sql?download=1
+
+```
+
+**Move into `import` folder**
+
+```bash
+mdkir -p import
+
+mv eurostat_schema_QB4OLAP_v1.3.ttl import/
+mv migr_asyappctzm_data.ttl.gz import/
+mv migr_asyappctzm_instances.ttl.gz import/
+
+mv *.sql import/
+
+```
+
+#### Import Data 
+
+```bash
+
+docker exec -it vos /opt/virtuoso-opensource/bin/isql exec="LOAD /import/load-eurostat.sql"
+
+```
+
+#### Test successful import
+
+
+**Run count query**
+
+```bash
+
+docker exec -it vos \
+/opt/virtuoso-opensource/bin/isql  \
+exec="SPARQL SELECT ?g (COUNT(*) as ?nTriple) WHERE { GRAPH ?g { ?s ?p ?o } } GROUP BY ?g;"
+
+```
+
+**Expected output**
+
+
+|------------------------------------------------------------|-----------|
+| g                                                          | nTriple   |
+|------------------------------------------------------------|-----------|
+| http://www.fing.edu.uy/inco/cubes/schemas/migr_asyapp      | 178       |
+| http://eurostat.linked-statistics.org/data/migr_asyappctzm | 150603161 |
+|------------------------------------------------------------|-----------|
+
+
+
+
+
+
